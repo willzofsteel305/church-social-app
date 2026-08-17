@@ -1,1 +1,1 @@
-import { Pool } from 'pg';\nimport dotenv from 'dotenv';\n\ndotenv.config();\n\nconst pool = new Pool({\n  host: process.env.DB_HOST || 'localhost',\n  port: parseInt(process.env.DB_PORT || '5432'),\n  user: process.env.DB_USER || 'postgres',\n  password: process.env.DB_PASSWORD || 'postgres',\n  database: process.env.DB_NAME || 'church_app',\n});\n\npool.on('error', (err) => {\n  console.error('Unexpected error on idle client', err);\n});\n\nexport default pool;\n
+export { default, query } from '../db';

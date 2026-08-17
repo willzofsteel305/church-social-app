@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { postsApi } from '../services/api';
+import { Post } from '../types';
 
 const HomePage: React.FC = () => {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get('/api/posts');
-        setPosts(response.data.posts);
+        const data = await postsApi.getAll();
+        setPosts(data);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -17,26 +18,30 @@ const HomePage: React.FC = () => {
       }
     };
 
-    fetchPosts();
+    void fetchPosts();
   }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-8 text-gray-900">Community Feed</h1>
-      
+
       <div className="grid grid-cols-3 gap-8">
         <div className="col-span-2">
           {loading ? (
             <p className="text-gray-500">Loading posts...</p>
           ) : posts.length > 0 ? (
-            posts.map((post: any) => (
+            posts.map((post) => (
               <div key={post.id} className="bg-white rounded-lg shadow p-6 mb-4">
-                <h3 className="font-bold text-lg mb-2">{post.title}</h3>
-                <p className="text-gray-600 mb-4">{post.content}</p>
+                {post.title && <h3 className="font-bold text-lg mb-2">{post.title}</h3>}
+                <p className="text-gray-600 mb-2">{post.content}</p>
+                {post.user && <p className="text-xs text-gray-500 mb-4">By {post.user.name}</p>}
                 <div className="flex space-x-4 text-sm text-gray-500">
-                  <button className="hover:text-blue-600">❤️ Like</button>
-                  <button className="hover:text-blue-600">💬 Comment</button>
-                  <button className="hover:text-blue-600">↗️ Share</button>
+                  <button className="hover:text-blue-600" type="button">
+                    ❤️ Like
+                  </button>
+                  <button className="hover:text-blue-600" type="button">
+                    💬 Comment
+                  </button>
                 </div>
               </div>
             ))
@@ -44,19 +49,10 @@ const HomePage: React.FC = () => {
             <p className="text-gray-500">No posts yet. Be the first to share!</p>
           )}
         </div>
-        
+
         <aside className="bg-white rounded-lg shadow p-6 h-fit">
           <h2 className="font-bold text-lg mb-4">Upcoming Events</h2>
-          <div className="space-y-4">
-            <div className="text-sm">
-              <p className="font-semibold text-gray-800">Sunday Service</p>
-              <p className="text-gray-600">Tomorrow at 10:00 AM</p>
-            </div>
-            <div className="text-sm">
-              <p className="font-semibold text-gray-800">Youth Group</p>
-              <p className="text-gray-600">Friday at 6:00 PM</p>
-            </div>
-          </div>
+          <p className="text-sm text-gray-600">Visit the Events page to RSVP and stay connected.</p>
         </aside>
       </div>
     </div>

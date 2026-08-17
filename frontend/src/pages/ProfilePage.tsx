@@ -1,21 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import { usersApi } from '../services/api';
+import { Post, User } from '../types';
 
 const ProfilePage: React.FC = () => {
   const { id } = useParams();
-  const [user, setUser] = useState<any>(null);
-  const [posts, setPosts] = useState([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserData = async () => {
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+
+      const userId = Number(id);
+      if (Number.isNaN(userId)) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const userResponse = await axios.get(`/api/users/${id}`);
-        const postsResponse = await axios.get(`/api/users/${id}/posts`);
-        
-        setUser(userResponse.data.user);
-        setPosts(postsResponse.data.posts);
+        const [profile, authoredPosts] = await Promise.all([usersApi.getById(userId), usersApi.getPosts(userId)]);
+        setUser(profile);
+        setPosts(authoredPosts);
       } catch (error) {
         console.error('Error fetching user data:', error);
       } finally {
@@ -23,7 +33,7 @@ const ProfilePage: React.FC = () => {
       }
     };
 
-    fetchUserData();
+    void fetchUserData();
   }, [id]);
 
   if (loading) return <p className="text-center py-8">Loading profile...</p>;
@@ -32,13 +42,11 @@ const ProfilePage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
         <div className="flex items-center space-x-8">
-          <div className="w-24 h-24 bg-gray-300 rounded-full"></div>
+          <div className="w-24 h-24 bg-gray-300 rounded-full" />
           <div>
             <h1 className="text-3xl font-bold">{user?.name || 'User'}</h1>
             <p className="text-gray-600">{user?.email}</p>
-            <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              Follow
-            </button>
+            {user?.bio && <p className="text-gray-600 mt-2">{user.bio}</p>}
           </div>
         </div>
       </div>
@@ -46,9 +54,9 @@ const ProfilePage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-lg p-8">
         <h2 className="text-2xl font-bold mb-6">Posts</h2>
         {posts.length > 0 ? (
-          posts.map((post: any) => (
+          posts.map((post) => (
             <div key={post.id} className="mb-6 pb-6 border-b">
-              <h3 className="font-bold text-lg mb-2">{post.title}</h3>
+              {post.title && <h3 className="font-bold text-lg mb-2">{post.title}</h3>}
               <p className="text-gray-600">{post.content}</p>
             </div>
           ))
