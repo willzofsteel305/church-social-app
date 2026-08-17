@@ -9,15 +9,16 @@ import {
   updatePost,
 } from '../controllers/postsController';
 import { authenticateToken } from '../middleware/auth';
+import { authRateLimiter } from '../middleware/rateLimit';
 
 const router = express.Router();
 
 router.get('/', getPosts);
 router.get('/:id', getPostById);
-router.post('/', authenticateToken, createPost);
-router.put('/:id', authenticateToken, updatePost);
-router.delete('/:id', authenticateToken, deletePost);
-router.post('/:id/comments', authenticateToken, addComment);
-router.post('/:id/reactions', authenticateToken, addReaction);
+router.post('/', authenticateToken, authRateLimiter, createPost);
+router.put('/:id', authenticateToken, authRateLimiter, updatePost);
+router.delete('/:id', authenticateToken, authRateLimiter, deletePost);
+router.post('/:id/comments', authenticateToken, authRateLimiter, addComment);
+router.post('/:id/reactions', authenticateToken, authRateLimiter, addReaction);
 
 export default router;

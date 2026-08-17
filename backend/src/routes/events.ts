@@ -8,14 +8,15 @@ import {
   updateEvent,
 } from '../controllers/eventsController';
 import { authenticateToken } from '../middleware/auth';
+import { authRateLimiter } from '../middleware/rateLimit';
 
 const router = express.Router();
 
 router.get('/', getEvents);
 router.get('/:id', getEventById);
-router.post('/', authenticateToken, createEvent);
-router.put('/:id', authenticateToken, updateEvent);
-router.delete('/:id', authenticateToken, deleteEvent);
-router.post('/:id/rsvp', authenticateToken, rsvpToEvent);
+router.post('/', authenticateToken, authRateLimiter, createEvent);
+router.put('/:id', authenticateToken, authRateLimiter, updateEvent);
+router.delete('/:id', authenticateToken, authRateLimiter, deleteEvent);
+router.post('/:id/rsvp', authenticateToken, authRateLimiter, rsvpToEvent);
 
 export default router;
