@@ -77,3 +77,45 @@ export async function findUserById(id: number): Promise<User | null> {
   const res = await query<User>(text, [id]);
   return res.rows[0] || null;
 }
+
+/**
+ * Update a user's profile fields. Returns the updated public user row.
+ */
+export async function updateUser(id: number, fields: Partial<Pick<User, 'firstName' | 'lastName' | 'profileImageUrl' | 'bio'>>): Promise<User | null> {
+  const updates: string[] = [];
+  const params: any[] = [];
+  let idx = 1;
+
+  if (fields.firstName !== undefined) {
+    updates.push(`first_name = $${idx++}`);
+    params.push(fields.firstName);
+  }
+  if (fields.lastName !== undefined) {
+    updates.push(`last_name = $${idx++}`);
+    params.push(fields.lastName);
+  }
+  if (fields.profileImageUrl !== undefined) {
+    updates.push(`profile_image_url = $${idx++}`);
+    params.push(fields.profileImageUrl);
+  }
+  if (fields.bio !== undefined) {
+    updates.push(`bio = $${idx++}`);
+    params.push(fields.bio);
+  }
+
+  if (updates.length === 0) return findUserById(id);
+
+  // set updated_at to now
+  updates.push(`updated_at = NOW()`);
+
+  const text = `
+    UPDATE users
+    SET ${updates.join(', ')}
+    WHERE id = $${idx}
+    RETURNING id, email, first_name AS "firstName", last_name AS "lastName", profile_image_url AS "profileImageUrl", bio, is_admin AS "isAdmin", created_at AS "createdAt", updated_at AS "updatedAt";
+  `;
+  params.push(id);
+
+  const res: QueryResult<User> = await query<User>(text, params);
+  return res.rows[0] || null;
+}
