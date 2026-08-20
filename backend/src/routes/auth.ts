@@ -1,9 +1,9 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
+import { register, login, logout } from '../controllers/authController';
 
 const router = express.Router();
 
-// Register endpoint
 router.post(
   '/register',
   [
@@ -12,38 +12,26 @@ router.post(
     body('firstName').notEmpty(),
     body('lastName').notEmpty(),
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    // TODO: Implement registration logic
-    res.status(201).json({ message: 'User registered successfully' });
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    return register(req, res);
   }
 );
 
-// Login endpoint
 router.post(
   '/login',
   [
     body('email').isEmail(),
     body('password').notEmpty(),
   ],
-  (req, res) => {
+  async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    // TODO: Implement login logic
-    res.status(200).json({ message: 'Login successful', token: 'jwt-token' });
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    return login(req, res);
   }
 );
 
-// Logout endpoint
-router.post('/logout', (req, res) => {
-  res.status(200).json({ message: 'Logged out successfully' });
-});
+router.post('/logout', logout);
 
 export default router;
